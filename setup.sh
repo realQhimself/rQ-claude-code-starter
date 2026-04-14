@@ -9,9 +9,6 @@ CLAUDE_DIR="$HOME/.claude"
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 BACKED_UP_FILES=""
 
-# 网络失败时提示用户备份位置
-trap 'if [ -n "$BACKED_UP_FILES" ]; then echo ""; echo "⚠️  出错了，但你的原配置已备份（时间戳 $TIMESTAMP）："; echo "  $BACKED_UP_FILES"; echo "  如需恢复，用备份文件替换同名文件即可。"; fi' ERR
-
 echo ""
 echo "========================================"
 echo "  rQ Claude Code Starter"
@@ -50,12 +47,18 @@ if [ "$BACKUP_MADE" = true ]; then
     echo "✅ 已备份你原来的配置（备份文件名带时间戳 $TIMESTAMP）"
 fi
 
-# 步骤 4：下载配置文件
+# 步骤 4：下载配置文件（先下载到临时目录，全部成功后再移入，避免部分下载残留）
 echo ""
 echo "⏳ 正在下载配置文件..."
-curl -fsSL "$REPO_URL/CLAUDE.md" -o "$CLAUDE_DIR/CLAUDE.md"
-curl -fsSL "$REPO_URL/settings.json" -o "$CLAUDE_DIR/settings.json"
-curl -fsSL "$REPO_URL/settings.local.json" -o "$CLAUDE_DIR/settings.local.json"
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"; if [ -n "$BACKED_UP_FILES" ]; then echo ""; echo "⚠️  出错了，但你的原配置已备份（时间戳 $TIMESTAMP）："; echo "  $BACKED_UP_FILES"; echo "  如需恢复，用备份文件替换同名文件即可。"; fi' ERR
+curl -fsSL "$REPO_URL/CLAUDE.md" -o "$TMP_DIR/CLAUDE.md"
+curl -fsSL "$REPO_URL/settings.json" -o "$TMP_DIR/settings.json"
+curl -fsSL "$REPO_URL/settings.local.json" -o "$TMP_DIR/settings.local.json"
+mv "$TMP_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+mv "$TMP_DIR/settings.json" "$CLAUDE_DIR/settings.json"
+mv "$TMP_DIR/settings.local.json" "$CLAUDE_DIR/settings.local.json"
+rm -rf "$TMP_DIR"
 echo "✅ 3 个配置文件已下载到 ~/.claude/"
 
 # 步骤 5：验证

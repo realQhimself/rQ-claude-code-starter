@@ -207,7 +207,7 @@ mv settings.json.backup.TIMESTAMP settings.json
 mv settings.local.json.backup.TIMESTAMP settings.local.json
 ```
 
-或者直接删掉，恢复出厂状态：
+或者直接删掉，恢复出厂状态（注意：如果你安装后往 `CLAUDE.md` 里加过自己的规则，先打开看看有没有想保留的内容）：
 
 ```bash
 rm ~/.claude/CLAUDE.md ~/.claude/settings.json ~/.claude/settings.local.json
@@ -224,7 +224,7 @@ ren settings.json.backup.TIMESTAMP settings.json
 ren settings.local.json.backup.TIMESTAMP settings.local.json
 ```
 
-或者直接删掉，恢复出厂状态：
+或者直接删掉，恢复出厂状态（注意：如果你安装后往 `CLAUDE.md` 里加过自己的规则，先打开看看有没有想保留的内容）：
 
 ```powershell
 cd $env:USERPROFILE\.claude

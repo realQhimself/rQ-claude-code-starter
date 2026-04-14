@@ -7,9 +7,22 @@
       "Bash(rm -rf ~/*)",
       "Bash(rm -rf $HOME)",
       "Bash(rm -rf $HOME/*)",
+      "Bash(rm -r -f /)",
+      "Bash(rm -r -f /*)",
+      "Bash(rm -r -f ~)",
+      "Bash(rm -r -f ~/*)",
+      "Bash(rm -r -f $HOME)",
+      "Bash(rm -r -f $HOME/*)",
+      "Bash(rm --recursive --force /)",
+      "Bash(rm --recursive --force /*)",
+      "Bash(rm --recursive --force ~)",
+      "Bash(rm --recursive --force ~/*)",
+      "Bash(rm --recursive --force $HOME)",
+      "Bash(rm --recursive --force $HOME/*)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
-      "Bash(git push*--force*)"
+      "Bash(git push*--force*)",
+      "Bash(git push*--force-with-lease*)"
     ]
   }
 }
