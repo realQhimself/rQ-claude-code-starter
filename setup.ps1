@@ -6,6 +6,7 @@ $ErrorActionPreference = "Stop"
 $RepoUrl = "https://raw.githubusercontent.com/realQhimself/rQ-claude-code-starter/main"
 $ClaudeDir = "$env:USERPROFILE\.claude"
 $Timestamp = Get-Date -Format "yyyyMMddHHmmss"
+$BackedUpFiles = @()
 
 Write-Host ""
 Write-Host "========================================"
@@ -39,6 +40,7 @@ foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json")) {
     $filePath = Join-Path $ClaudeDir $file
     if (Test-Path $filePath) {
         Copy-Item $filePath "$filePath.backup.$Timestamp"
+        $BackedUpFiles += "$file.backup.$Timestamp"
         $BackupMade = $true
     }
 }
@@ -49,17 +51,25 @@ if ($BackupMade) {
 # 步骤 4：下载配置文件
 Write-Host ""
 Write-Host "⏳ 正在下载配置文件..."
-foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json")) {
-    $url = "$RepoUrl/$file"
-    $dest = Join-Path $ClaudeDir $file
-    try {
+try {
+    foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json")) {
+        $url = "$RepoUrl/$file"
+        $dest = Join-Path $ClaudeDir $file
         Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
-    } catch {
-        Write-Host "❌ 下载 $file 失败: $_" -ForegroundColor Red
-        exit 1
     }
+    Write-Host "✅ 3 个配置文件已下载" -ForegroundColor Green
+} catch {
+    Write-Host "❌ 下载失败: $_" -ForegroundColor Red
+    if ($BackedUpFiles.Count -gt 0) {
+        Write-Host ""
+        Write-Host "你的原配置已备份（时间戳 $Timestamp）：" -ForegroundColor Yellow
+        foreach ($bf in $BackedUpFiles) {
+            Write-Host "  $ClaudeDir\$bf"
+        }
+        Write-Host "  如需恢复，用备份文件替换同名文件即可。"
+    }
+    exit 1
 }
-Write-Host "✅ 3 个配置文件已下载" -ForegroundColor Green
 
 # 步骤 5：验证
 Write-Host ""
@@ -89,12 +99,18 @@ if ($AllOk) {
     if ($BackupMade) {
         Write-Host "如果想恢复原来的配置：" -ForegroundColor Yellow
         Write-Host "  cd $ClaudeDir"
-        Write-Host "  ren CLAUDE.md.backup.$Timestamp CLAUDE.md"
-        Write-Host "  ren settings.json.backup.$Timestamp settings.json"
-        Write-Host "  ren settings.local.json.backup.$Timestamp settings.local.json"
+        foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json")) {
+            $backupPath = Join-Path $ClaudeDir "$file.backup.$Timestamp"
+            if (Test-Path $backupPath) {
+                Write-Host "  Move-Item -Force `"$file.backup.$Timestamp`" `"$file`""
+            }
+        }
         Write-Host ""
     }
 } else {
     Write-Host "⚠️  部分文件下载失败，请检查网络后重试。" -ForegroundColor Yellow
+    if ($BackedUpFiles.Count -gt 0) {
+        Write-Host "你的原配置已备份在 $ClaudeDir（时间戳 $Timestamp）" -ForegroundColor Yellow
+    }
     exit 1
 }

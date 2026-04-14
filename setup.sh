@@ -7,6 +7,10 @@ set -e
 REPO_URL="https://raw.githubusercontent.com/realQhimself/rQ-claude-code-starter/main"
 CLAUDE_DIR="$HOME/.claude"
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
+BACKED_UP_FILES=""
+
+# 网络失败时提示用户备份位置
+trap 'if [ -n "$BACKED_UP_FILES" ]; then echo ""; echo "⚠️  出错了，但你的原配置已备份（时间戳 $TIMESTAMP）："; echo "  $BACKED_UP_FILES"; echo "  如需恢复，用备份文件替换同名文件即可。"; fi' ERR
 
 echo ""
 echo "========================================"
@@ -38,6 +42,7 @@ BACKUP_MADE=false
 for file in CLAUDE.md settings.json settings.local.json; do
     if [ -f "$CLAUDE_DIR/$file" ]; then
         cp "$CLAUDE_DIR/$file" "$CLAUDE_DIR/$file.backup.$TIMESTAMP"
+        BACKED_UP_FILES="$BACKED_UP_FILES $file.backup.$TIMESTAMP"
         BACKUP_MADE=true
     fi
 done
@@ -80,9 +85,11 @@ if [ "$ALL_OK" = true ]; then
     if [ "$BACKUP_MADE" = true ]; then
         echo "如果想恢复原来的配置："
         echo "  cd ~/.claude"
-        echo "  mv CLAUDE.md.backup.$TIMESTAMP CLAUDE.md"
-        echo "  mv settings.json.backup.$TIMESTAMP settings.json"
-        echo "  mv settings.local.json.backup.$TIMESTAMP settings.local.json"
+        for file in CLAUDE.md settings.json settings.local.json; do
+            if [ -f "$CLAUDE_DIR/$file.backup.$TIMESTAMP" ]; then
+                echo "  mv $file.backup.$TIMESTAMP $file"
+            fi
+        done
         echo ""
     fi
 else
